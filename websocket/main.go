@@ -18,7 +18,8 @@ func (wsh WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	defer c.Close()
-
-	fmt.Println("new connection")
+	defer func() {
+		fmt.Println("Closing Connection")
+		c.Close()
+	}()
 }
