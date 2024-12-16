@@ -11,7 +11,11 @@ CREATE TABLE rooms (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE CASCADE
 );
-
+CREATE TABLE players (
+    id VARCHAR(10) PRIMARY KEY,
+    room_id VARCHAR(10) NOT NULL,
+    player_id VARCHAR(10) NOT NULL
+);
 CREATE TABLE rounds (
     id VARCHAR(10) PRIMARY KEY,
     room_id VARCHAR(10) NOT NULL,
