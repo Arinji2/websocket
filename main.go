@@ -4,15 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	socket "github.com/Arinji2/websockets/websocket"
-	"github.com/gorilla/websocket"
+	"github.com/Arinji2/websockets/routes"
 )
 
 func main() {
-	socketHandler := socket.WebsocketHandler{
-		Upgrader: websocket.Upgrader{},
-	}
-	http.Handle("/", socketHandler)
-	log.Println("Server Started on 8080")
+	apiRouter := routes.Router()
+	http.Handle("/api/", http.StripPrefix("/api", apiRouter))
 	log.Fatal(http.ListenAndServe("localhost:8080", nil))
 }
