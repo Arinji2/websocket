@@ -22,6 +22,16 @@ type RoomDataRoute struct {
 	CreatedBy string `json:"created_by"`
 }
 
+type PlayersData struct {
+	ID       string
+	RoomID   string
+	PlayerID string
+}
+type PlayersDataRoute struct {
+	RoomID   string `json:"room_id"`
+	PlayerID string `json:"player_id"`
+}
+
 type RoundData struct {
 	ID          string
 	RoomID      string

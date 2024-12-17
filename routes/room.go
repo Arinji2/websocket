@@ -73,3 +73,70 @@ func handleRoomCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(room.ID))
 	log.Printf("Room created with ID: %s For User: %s", room.ID, userName)
 }
+
+func handleRoomJoin(w http.ResponseWriter, r *http.Request) {
+	/*
+	   curl -X POST http://localhost:8080/api/rooms/join  -H "Content-Type: application/json" -d '{"room_id": "8uOQlvwCUD", "player_id":"HnJO@"}'
+	*/
+
+	var playerData PlayersDataRoute
+	if err := parseRequestBody(r, &playerData); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	db, err := sqlite.NewConnection()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error creating database connection: %v", err)
+		return
+	}
+
+	defer db.Close()
+
+	roomSQL := "SELECT id, name FROM rooms WHERE id = ?"
+	userRows, err := db.Query(r.Context(), roomSQL, playerData.RoomID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error querying room: %v", err)
+		return
+	}
+
+	var roomName string
+	if userRows.Next() {
+		var userID string
+		if err := userRows.Scan(&userID, &roomName); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("Error scanning room: %v", err)
+			return
+		}
+	} else {
+		http.Error(w, "Room not found", http.StatusBadRequest)
+		log.Printf("Room not found")
+		return
+	}
+
+	playerID, err := GenerateID(r.Context(), db, "players")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error generating ID: %v", err)
+		return
+	}
+
+	room := PlayersData{
+		ID:       playerID,
+		RoomID:   playerData.RoomID,
+		PlayerID: playerData.PlayerID,
+	}
+
+	_, err = db.Exec(r.Context(), "INSERT INTO players (id, room_id, player_id) VALUES (?, ?, ?)", room.ID, room.RoomID, room.PlayerID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error inserting player: %v", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(room.ID))
+	log.Printf("Player joined with ID: %s For Room: %s", room.PlayerID, roomName)
+}
