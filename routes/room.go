@@ -34,6 +34,7 @@ func handleRoomCreate(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error querying user: %v", err)
 		return
 	}
+	defer userRows.Close()
 
 	var userName string
 	if userRows.Next() {
@@ -101,6 +102,7 @@ func handleRoomJoin(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error querying room: %v", err)
 		return
 	}
+	defer userRows.Close()
 
 	var roomName string
 	if userRows.Next() {
