@@ -142,3 +142,65 @@ func handleRoomJoin(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(room.ID))
 	log.Printf("Player joined with ID: %s For Room: %s", room.PlayerID, roomName)
 }
+
+func HandleRoomLeave(w http.ResponseWriter, r *http.Request) {
+	/*
+	   curl -X POST http://localhost:8080/api/rooms/leave  -H "Content-Type: application/json" -d '{"room_id": "8uOQlvwCUD", "player_id":"HnJO@"}'
+	*/
+
+	var playerData PlayersDataRoute
+	if err := parseRequestBody(r, &playerData); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	db, err := sqlite.NewConnection()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error creating database connection: %v", err)
+		return
+	}
+
+	defer db.Close()
+
+	dataSQL := `
+  SELECT r.id , u.name 
+  FROM rooms r 
+  JOIN players p 
+   ON r.id = p.room_id AND p.player_id = ? 
+  JOIN users u
+   ON p.player_id = u.id
+  WHERE r.id = ?
+  `
+	dataRows, err := db.Query(r.Context(), dataSQL, playerData.PlayerID, playerData.RoomID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error querying data: %v", err)
+		return
+	}
+	defer dataRows.Close()
+	var playerName string
+	if dataRows.Next() {
+		var userID string
+		if err := dataRows.Scan(&userID, &playerName); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("Error scanning data: %v", err)
+			return
+		}
+	} else {
+		http.Error(w, "Data not found", http.StatusBadRequest)
+		log.Printf("Data not found")
+		return
+	}
+
+	_, err = db.Exec(r.Context(), "DELETE FROM players WHERE player_id = ?", playerData.PlayerID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error deleting player: %v", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(playerData.PlayerID))
+	log.Printf("Player deleted with ID: %s For Room: %s", playerData.PlayerID, playerData.RoomID)
+}
