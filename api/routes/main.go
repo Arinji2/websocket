@@ -1,14 +1,17 @@
 package routes
 
 import (
-	"net/http"
+	"github.com/go-chi/chi/v5"
 )
 
-func Router() *http.ServeMux {
-	apiRouter := http.NewServeMux()
-	apiRouter.HandleFunc("POST /user/create", handleUserCreate)
-	apiRouter.HandleFunc("POST /rooms/create", handleRoomCreate)
-	apiRouter.HandleFunc("POST /rooms/join", handleRoomJoin)
-	apiRouter.HandleFunc("POST /rooms/leave", HandleRoomLeave)
+func Router() *chi.Mux {
+	apiRouter := chi.NewRouter()
+
+	// Define POST routes
+	apiRouter.Post("/user/create", handleUserCreate)
+	apiRouter.Post("/rooms/create", handleRoomCreate)
+	apiRouter.Post("/rooms/join", handleRoomJoin)
+	apiRouter.Post("/rooms/leave", HandleRoomLeave)
+
 	return apiRouter
 }
