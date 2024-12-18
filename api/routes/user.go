@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -32,19 +33,23 @@ func handleUserCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sessionID := generateSessionID()
 	user := UserData{
-		ID:    userID,
-		Email: userData.Email,
-		Name:  userData.Name,
+		ID:        userID,
+		Email:     userData.Email,
+		Name:      userData.Name,
+		SessionID: sessionID,
 	}
 
-	_, err = db.Exec(r.Context(), "INSERT INTO users (id, email, name) VALUES (?, ?, ?)", user.ID, user.Email, user.Name)
+	_, err = db.Exec(r.Context(), "INSERT INTO users (id, email, name, session_id) VALUES (?, ?, ?, ?)", user.ID, user.Email, user.Name, user.SessionID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("Error inserting user: %v", err)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(user.ID))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+
 	log.Printf("User created with ID: %s For Email: %s", user.ID, user.Email)
 }

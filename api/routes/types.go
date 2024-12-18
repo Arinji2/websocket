@@ -1,9 +1,10 @@
 package routes
 
 type UserData struct {
-	ID    string
-	Email string
-	Name  string
+	ID        string
+	Email     string
+	Name      string
+	SessionID string
 }
 type UserDataRoute struct {
 	Email string `json:"email"`
@@ -44,4 +45,15 @@ type RoundDataRoute struct {
 	RoomID      string `json:"room_id"`
 	Calculation string `json:"calculation"`
 	AnsweredBy  string `json:"answered_by"`
+}
+type SessionData struct {
+	ID          string
+	IP          string
+	UserAgent   string
+	UserID      string
+	ConnectedAt string
+}
+
+type SessionDataRoute struct {
+	UserID string `json:"user_id"`
 }
