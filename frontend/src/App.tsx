@@ -1,69 +1,27 @@
-import "./App.css";
-import { UserSchema } from "./types/user";
-
+import { Toaster } from "react-hot-toast";
+import { Route, Routes } from "react-router-dom";
+import Home from "./Home";
 function App() {
   return (
-    <div className="w-full h-[100svh] bg-slate-900 flex flex-col items-center gap-4 justify-center">
-      <h1 className="text-6xl font-bold text-white">CREATE USER</h1>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.currentTarget);
-          const username = formData.get("username");
-          const email = formData.get("email");
-          if (!email || !username) {
-            alert("Please fill in all fields");
-            return;
-          }
-
-          const backendDomain = import.meta.env.VITE_BACKEND_URL;
-          const response = await fetch(`${backendDomain}/api/user/create`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
+    <>
+      <div>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              borderRadius: "10px",
+              background: "#333",
+              color: "#fff",
             },
-            body: JSON.stringify({
-              username: username,
-              email: email,
-            }),
-          });
-
-          if (response.ok) {
-            alert("User created successfully");
-          } else {
-            alert("Error creating user");
-            console.error(response);
-          }
-          try {
-            const rawUser = await response.json();
-            const parsedUser = UserSchema.parse(rawUser);
-            localStorage.setItem("user", JSON.stringify(parsedUser));
-          } catch (error) {
-            console.error(error);
-          }
-        }}
-        className="flex flex-col items-center justify-center gap-3"
-      >
-        <input
-          type="text"
-          name="username"
-          placeholder="Username..."
-          className="w-full p-2 text-white border-b-2 border-black shadow-black bg-transparent"
+          }}
         />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email..."
-          className="w-full p-2 text-white border-b-2 border-black shadow-black bg-transparent"
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md shadow-black font-bold"
-        >
-          Create User
-        </button>
-      </form>
-    </div>
+      </div>
+      <div className="w-full min-h-[100svh] bg-slate-900 flex flex-col items-center justify-center">
+        <Routes>
+          <Route path="/" element={<Home />} />
+        </Routes>
+      </div>
+    </>
   );
 }
 
