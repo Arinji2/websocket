@@ -1,7 +1,8 @@
 CREATE TABLE users (
     id VARCHAR(10) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL
+    email VARCHAR(100) NOT NULL,
+    session_id VARCHAR(10) NOT NULL
 );
 
 CREATE TABLE rooms (
