@@ -1,4 +1,4 @@
-package routes
+package types
 
 type UserData struct {
 	ID        string

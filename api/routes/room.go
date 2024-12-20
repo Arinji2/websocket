@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Arinji2/websockets/sqlite"
+	"github.com/Arinji2/websockets/types"
 )
 
 func handleRoomCreate(w http.ResponseWriter, r *http.Request) {
@@ -12,7 +13,7 @@ func handleRoomCreate(w http.ResponseWriter, r *http.Request) {
 	   curl -X POST http://localhost:8080/api/rooms/create  -H "Content-Type: application/json" -d '{"name": "test-room", "created_by":"HnJO@geSAD"}'
 	*/
 
-	var roomData RoomDataRoute
+	var roomData types.RoomDataRoute
 	if err := parseRequestBody(r, &roomData); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -57,7 +58,7 @@ func handleRoomCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room := RoomData{
+	room := types.RoomData{
 		ID:        roomID,
 		Name:      roomData.Name,
 		CreatedBy: roomData.CreatedBy,
@@ -80,7 +81,7 @@ func handleRoomJoin(w http.ResponseWriter, r *http.Request) {
 	   curl -X POST http://localhost:8080/api/rooms/join  -H "Content-Type: application/json" -d '{"room_id": "8uOQlvwCUD", "player_id":"HnJO@"}'
 	*/
 
-	var playerData PlayersDataRoute
+	var playerData types.PlayersDataRoute
 	if err := parseRequestBody(r, &playerData); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -125,7 +126,7 @@ func handleRoomJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room := PlayersData{
+	room := types.PlayersData{
 		ID:       playerID,
 		RoomID:   playerData.RoomID,
 		PlayerID: playerData.PlayerID,
@@ -148,7 +149,7 @@ func HandleRoomLeave(w http.ResponseWriter, r *http.Request) {
 	   curl -X POST http://localhost:8080/api/rooms/leave  -H "Content-Type: application/json" -d '{"room_id": "8uOQlvwCUD", "player_id":"HnJO@"}'
 	*/
 
-	var playerData PlayersDataRoute
+	var playerData types.PlayersDataRoute
 	if err := parseRequestBody(r, &playerData); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

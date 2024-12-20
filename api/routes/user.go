@@ -6,13 +6,14 @@ import (
 	"net/http"
 
 	"github.com/Arinji2/websockets/sqlite"
+	"github.com/Arinji2/websockets/types"
 )
 
 func handleUserCreate(w http.ResponseWriter, r *http.Request) {
 	/*
 		curl -X POST http://localhost:8080/api/user/create -H "Content-Type: application/json" -d '{"name": "arinji", "email": "arinjaydhar205@gmail.com"}'
 	*/
-	var userData UserDataRoute
+	var userData types.UserDataRoute
 	if err := parseRequestBody(r, &userData); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -34,7 +35,7 @@ func handleUserCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionID := generateSessionID()
-	user := UserData{
+	user := types.UserData{
 		ID:        userID,
 		Email:     userData.Email,
 		Name:      userData.Name,
