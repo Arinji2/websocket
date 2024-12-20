@@ -8,9 +8,9 @@ export default function Home() {
         onSubmit={async (e) => {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
-          const username = formData.get("username");
+          const name = formData.get("name");
           const email = formData.get("email");
-          if (!email || !username) {
+          if (!email || !name) {
             alert("Please fill in all fields");
             return;
           }
@@ -22,7 +22,7 @@ export default function Home() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              username: username,
+              name: name,
               email: email,
             }),
           });
@@ -45,8 +45,8 @@ export default function Home() {
       >
         <input
           type="text"
-          name="username"
-          placeholder="Username..."
+          name="name"
+          placeholder="name..."
           className="w-full p-2 text-white border-b-2 border-black shadow-black bg-transparent"
         />
         <input
