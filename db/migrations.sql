@@ -17,13 +17,4 @@ CREATE TABLE players (
     room_id VARCHAR(10) NOT NULL,
     player_id VARCHAR(10) NOT NULL
 );
-CREATE TABLE rounds (
-    id VARCHAR(10) PRIMARY KEY,
-    room_id VARCHAR(10) NOT NULL,
-    calculation VARCHAR(100) NOT NULL,
-    answered_by VARCHAR(10) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (room_id) REFERENCES rooms (id) ON DELETE CASCADE,
-    FOREIGN KEY (answered_by) REFERENCES users (id) ON DELETE CASCADE
-);
 

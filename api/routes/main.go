@@ -14,6 +14,6 @@ func Router() *chi.Mux {
 	)
 	// Define POST routes
 	apiRouter.Post("/user/create", handleUserCreate)
-	apiRouter.Get("/handler/ping", websocketHandler.ServeHTTP)
+	apiRouter.Get("/handler/ws", websocketHandler.ServeHTTP)
 	return apiRouter
 }
