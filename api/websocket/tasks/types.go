@@ -1,4 +1,4 @@
-package types
+package websocketTasks
 
 type UserData struct {
 	ID        string
@@ -45,15 +45,4 @@ type RoundDataRoute struct {
 	RoomID      string `json:"room_id"`
 	Calculation string `json:"calculation"`
 	AnsweredBy  string `json:"answered_by"`
-}
-type SessionData struct {
-	ID          string
-	IP          string
-	UserAgent   string
-	UserID      string
-	ConnectedAt string
-}
-
-type SessionDataRoute struct {
-	UserID string `json:"user_id"`
 }

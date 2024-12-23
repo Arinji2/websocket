@@ -9,19 +9,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Arinji2/websockets/sqlite"
-	"github.com/Arinji2/websockets/types"
+	websocketTasks "github.com/Arinji2/websockets/websocket/tasks"
 	"github.com/gorilla/websocket"
 )
 
 type WebsocketHandler struct {
 	Upgrader websocket.Upgrader
-	AuthMap  *ClientMap[types.UserData]
+	AuthMap  *ClientMap[websocketTasks.UserData]
 	ConnMap  *ClientMap[*websocket.Conn]
 	UserMap  *ClientMap[string]
 }
 
-func NewWebsocketHandler(authMap *ClientMap[types.UserData]) WebsocketHandler {
+func NewWebsocketHandler(authMap *ClientMap[websocketTasks.UserData]) WebsocketHandler {
 	return WebsocketHandler{
 		Upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
@@ -67,7 +66,6 @@ func (wsh WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	authenticated := false
 	var userID string
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -94,43 +92,43 @@ func (wsh WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			trimmedMessage := strings.TrimSpace(string(message))
 			log.Printf("Received message: %s", trimmedMessage)
 
-			if !authenticated {
-				if !strings.HasPrefix(trimmedMessage, "AUTH:") {
-					c.WriteMessage(websocket.TextMessage, []byte("Please authenticate first"))
+			fmt.Println(trimmedMessage)
+			if strings.HasPrefix(trimmedMessage, "TASK/") {
+				taskData := strings.Split(strings.TrimPrefix(trimmedMessage, "TASK/"), "/")
+				if len(taskData) != 2 {
+					c.WriteMessage(websocket.TextMessage, []byte("Invalid task data"))
 					continue
 				}
 
-				authMessage := strings.TrimPrefix(trimmedMessage, "AUTH:")
-				var authData types.UserData
-				if err := json.Unmarshal([]byte(authMessage), &authData); err != nil {
-					log.Println("Error unmarshalling auth message:", err)
-					return
+				taskID := taskData[0]
+				taskJsonData := []byte(taskData[1])
+
+				if !authenticated && taskID != "AUTHENTICATE_USER" {
+					c.WriteMessage(websocket.TextMessage, []byte("Please authenticate first"))
+					continue
+				}
+				task, err := websocketTasks.GetTaskData(ctx, taskID, taskJsonData)
+				if err != nil {
+					c.WriteMessage(websocket.TextMessage, []byte("Error processing task: "+err.Error()))
+					continue
 				}
 
-				if err := sqlite.AuthenticateUser(authData); err != nil {
-					log.Println("Error authenticating user:", err)
-					c.WriteMessage(websocket.TextMessage, []byte("Authentication failed"))
-					return
+				if task.GetTaskID() == "AUTHENTICATE_USER" {
+					var userData websocketTasks.UserData
+					if err := json.Unmarshal(taskJsonData, &userData); err != nil {
+						c.WriteMessage(websocket.TextMessage, []byte("Error processing task: "+err.Error()))
+						continue
+					}
+					wsh.indexUser(userData, c, connPtr)
+					authenticated = true
+					log.Printf("User %s authenticated and mapped to connection %s", userID, connPtr)
+					continue
 				}
-
-				userID = authData.ID
-				wsh.AuthMap.Add(userID, authData)
-				wsh.ConnMap.Add(userID, c)
-				wsh.UserMap.Add(connPtr, userID)
-
-				authenticated = true
-				log.Printf("User %s authenticated and mapped to connection %s", userID, connPtr)
-				wsh.Broadcast([]byte(fmt.Sprintf("New User Connected With Email %s", authData.Email)), userID)
 				continue
 			}
-
 			switch trimmedMessage {
 			case "ping":
 				log.Println("Received ping from client")
-			case "stop":
-				log.Println("Stopping server...")
-				cancel()
-				return
 			default:
 				if userData, exists := wsh.AuthMap.Get(userID); exists {
 					log.Printf("Message from user: %s", userData.ID)
@@ -164,4 +162,11 @@ func (wsh WebsocketHandler) SendToUser(userID string, message []byte) error {
 		return conn.WriteMessage(websocket.TextMessage, message)
 	}
 	return fmt.Errorf("user %s not connected", userID)
+}
+
+func (wsh WebsocketHandler) indexUser(authData websocketTasks.UserData, c *websocket.Conn, connPtr string) {
+	userID := authData.ID
+	wsh.AuthMap.Add(userID, authData)
+	wsh.ConnMap.Add(userID, c)
+	wsh.UserMap.Add(connPtr, userID)
 }

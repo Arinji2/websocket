@@ -6,14 +6,14 @@ import (
 	"net/http"
 
 	"github.com/Arinji2/websockets/sqlite"
-	"github.com/Arinji2/websockets/types"
+	websocketTasks "github.com/Arinji2/websockets/websocket/tasks"
 )
 
 func handleUserCreate(w http.ResponseWriter, r *http.Request) {
 	/*
 		curl -X POST http://localhost:8080/api/user/create -H "Content-Type: application/json" -d '{"name": "arinji", "email": "arinjaydhar205@gmail.com"}'
 	*/
-	var userData types.UserDataRoute
+	var userData websocketTasks.UserDataRoute
 	if err := parseRequestBody(r, &userData); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -27,7 +27,7 @@ func handleUserCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-	userID, err := GenerateID(r.Context(), db, "users")
+	userID, err := sqlite.GenerateID(r.Context(), db, "users")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("Error generating ID: %v", err)
@@ -35,7 +35,7 @@ func handleUserCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionID := generateSessionID()
-	user := types.UserData{
+	user := websocketTasks.UserData{
 		ID:        userID,
 		Email:     userData.Email,
 		Name:      userData.Name,
